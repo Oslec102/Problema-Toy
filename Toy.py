@@ -37,7 +37,9 @@ print("======================================")
 print(C_d_t_df)
 print()
 
-Distancia_d = pd.read_excel('ProblemaToy.xlsx',sheet_name=5)
+Distancia_d = pd.read_excel('ProblemaToy.xlsx',sheet_name=5, header=[0], index_col=0)
+
+
 print("======================================")
 print("Distancia_d                                  |")
 print("======================================")
@@ -174,13 +176,6 @@ print()
 num_colaboradores = 5
 num_predios = 3
 
-# Ajustar o dicionário Distancia_d para garantir que todas as combinações de prédios tenham um valor associado
-for p1 in listaPredios:
-    for p2 in listaPredios:
-        if (p1, p2) not in Distancia_d:
-            Distancia_d[(p1, p2)] = 0
-
-
 # CRIAR MODELO MIP
 model = Model()
 
@@ -194,7 +189,34 @@ u = {(c, p1, p2): model.add_var(var_type=BINARY, name="u({},{},{})".format(c, p1
 # DEFINIR A FUNÇÃO OBJETIVO
 model.objective = xsum(u[c, p1, p2] * Distancia_d.loc[p1, p2] for c in C_df['Colaborador'].values.tolist() for p1 in listaPredios for p2 in listaPredios)
 
-model.write('teste.lp')
+
+#Cada área deve ser alocada ao número requerido de colaboradores em cada turno e dia da semana
+for a in A_df['Area'].values.tolist():
+    for dia, dia_abreviado in dias_semana.items():
+        for t in T_df['Turno'].values.tolist():
+            if (a, dia, t) in ld:   
+                model  += xsum(x[(c,a)] for c in C_df['Colaborador'].values.tolist()) == ld[(a,dia,t)]
+
+
+#A soma dos tempos de limpeza e deslocamentos não pode exceder a carga horária diária por turno de cada colaborador
+for dia, dia_abreviado in dias_semana.items():
+    for t in T_df['Turno'].values.tolist():
+        for p1 in listaPredios:
+            for p2 in listaPredios:
+                for d in Distancia_d:
+                    for c in C_df['Colaborador'].values.tolist():
+                        if (colaborador, dia, turno) in h:
+                            model += xsum(x[(c,a)] for c in C_df['Colaborador'].values.tolist() * t[(a)] * Distancia_d.loc[p1, p2]) <= h[(colaborador, dia, turno)]
+
+  #Tem que considerar o parametro Distancia na soma?
+                
+
+# Respeitar as fixações de colaborador para área quando determinado
+for c in C_df['Colaborador'].values.tolist():
+    for a in A_df['Area'].values.tolist():
+        if (c, a) in f_df_clean:
+            f_fixo = f_df_clean.loc[(c, a)].values[0]
+            model += x[(c, a)] >= f_fixo
 
 # RESOLVER O MODELO
 model.optimize()
