@@ -193,11 +193,11 @@ for a in A_df['Area'].values.tolist():
 
 
 #A soma dos tempos de limpeza e deslocamentos não pode exceder a carga horária diária por turno de cada colaborador
-for d in D:
-        for t in T_df['Turno'].values.tolist():
-                for c in C_dt_dict[(d,t)]:
-                    if (c, d, t) in h:
-                        model += xsum(x[(c,a,d,t)] * t_a[a] for a in t_a) <= h[(c, d, t)]
+# for d in D:
+#         for t in T_df['Turno'].values.tolist():
+#                 for c in C_dt_dict[(d,t)]:
+#                     if (c, d, t) in h:
+#                         model += xsum(x[(c,a,d,t)] * t_a[a] for a in t_a) <= h[(c, d, t)]
                     
 
 
@@ -224,11 +224,10 @@ model.write('teste.lp')
 
 # IMPRIMIR RESULTADOS
 if model.status == OptimizationStatus.OPTIMAL:
-    for c in C_d_t_df['Colaborador'].values.tolist():
-        for a in A_df['Area'].values.tolist():
-            for d, dia_abreviado in dias_semana.items():
-                for t in T_df['Turno'].values.tolist():
-
+    for a in A_df['Area'].values.tolist():
+        for d in D:
+            for t in T_df['Turno'].values.tolist():
+                for c in C_dt_dict[(d,t)]:
                     if x[(c, a,d,t)].x >= 0.99:
                         print(f"x({c}, {a}, {d}, {t}) = 1")
 else:
