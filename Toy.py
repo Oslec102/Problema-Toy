@@ -4,9 +4,10 @@ import pandas as pd
 from mip import Model, xsum, INTEGER, BINARY, OptimizationStatus
 import gurobipy as gp
 
+file_name = "ProblemaToy1.xlsx"
 
 #Ler o total de colaboradores da Planilha Excel
-C_d_t_df = pd.read_excel('ProblemaToy.xlsx',sheet_name=1, names=['Colaborador'])
+C_d_t_df = pd.read_excel(file_name,sheet_name=1, names=['Colaborador'])
 print("======================================")
 print("| C_df                                |")
 print("======================================")
@@ -15,22 +16,32 @@ print()
 
 
 # Ler as áreas da planilha Excel.
-A_df = pd.read_excel('ProblemaToy.xlsx',sheet_name=0, usecols=[0])
+A_df = pd.read_excel(file_name,sheet_name=0, usecols=[0])
+A = A_df["Area"].values.tolist()
+A0 = A_df["Area"].values.tolist()
+A0.append("DUMMY")
 print("======================================")
-print("| A_df                                  |")
+print("| A                                  |")
 print("======================================")
-print(A_df)
+print(A)
+print()
+
+# Ler as áreas da planilha Excel.
+print("======================================")
+print("| A0                                  |")
+print("======================================")
+print(A0)
 print()
 
 # Ler os turnos da planilha Excel.
-T_df = pd.read_excel('ProblemaToy.xlsx',sheet_name=2, names=['Turno'])
+T_df = pd.read_excel(file_name,sheet_name=2, names=['Turno'])
 print("======================================")
 print("| T_df                                  |")
 print("======================================")
 print(T_df)
 print()
 
-C_d_t_df = pd.read_excel('ProblemaToy.xlsx',sheet_name=3, header=[0])
+C_d_t_df = pd.read_excel(file_name,sheet_name=3, header=[0])
 C_dt_dict = {}
 for index, row in C_d_t_df.iterrows():
     dia = row['Dia']
@@ -47,8 +58,17 @@ print("======================================")
 print(C_d_t_df)
 print()
 
-Distancia_d = pd.read_excel('ProblemaToy.xlsx',sheet_name=5, header=[0], index_col=0)
+Distancia_d = pd.read_excel(file_name,sheet_name=5, index_col=0)
+print(Distancia_d)
+print(Distancia_d["Agua e Ar"]["Agua e Ar"])
+# Dist = {}
 
+# for index, row in Distancia_d.iterrows():
+
+#     p1 = row ['predio 1']
+#     p2 = row ['predio 2']
+
+#     Dist[( p1, p2)] = Distancia_d
 
 print("======================================")
 print("Distancia_d                                  |")
@@ -58,7 +78,7 @@ print()
 
 # Dicionário com os dias da semana.
 # D = ("Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom")
-D = pd.read_excel('ProblemaToy.xlsx', sheet_name=0, usecols=[4, 5, 6, 7, 8, 9])
+D = pd.read_excel(file_name, sheet_name=0, usecols=[4, 5, 6, 7, 8, 9])
 
 # Converter DataFrame para uma lista de listas com os dias completos
 D = D.values.tolist()
@@ -66,7 +86,7 @@ D = D.values.tolist()
 #PARÂMETROS
 
 # h[c, d, t] = carga horária máxima (em minutos) do colaborador c no dia d no turno t
-dadosminutos = pd.read_excel('ProblemaToy.xlsx',sheet_name=4)
+dadosminutos = pd.read_excel(file_name,sheet_name=4)
 # Cria o dicionário
 h = {}
 
@@ -91,7 +111,7 @@ print(h)
 print()
 
 # t[a] = tempo (em minutos) que a área a leva para ser limpada
-df_tempoLimpeza = pd.read_excel('ProblemaToy.xlsx')
+df_tempoLimpeza = pd.read_excel(file_name)
 
 # Cria um dicionário com o tempo que cada área leva para ser limpa
 t_a = dict(zip(df_tempoLimpeza["Area"], df_tempoLimpeza["Tempo_limpeza_em_minutos"]))
@@ -102,15 +122,15 @@ print(t_a)
 print()
 
 #ld[a, d, t] = número de vezes por dia que a área a tem que ser limpa no turno t 
-#ld = pd.read_excel('ProblemaToy.xlsx',sheet_name=0, usecols=[0,3,4,5,6,7,8,9])
+#ld = pd.read_excel(file_name,sheet_name=0, usecols=[0,3,4,5,6,7,8,9])
 #print("======================================")
 #print("| ld[a, d, t]                                  |")
 #print("======================================")
 #print(ld)
 #print()
 
-limpeza_df = pd.read_excel('ProblemaToy.xlsx', sheet_name=0, usecols=[0, 3, 4, 5, 6, 7, 8, 9,10])
-D = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]
+limpeza_df = pd.read_excel(file_name, sheet_name=0, usecols=[0, 3, 4, 5, 6, 7, 8, 9,10])
+D ={"Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"}
 
 # Criar o parâmetro nc[a, d, t] = número de vezes por dia que a área a tem que ser limpa no turno t
 nc = {}
@@ -129,7 +149,7 @@ for key, value in nc.items():
 print()
 
 
-df_predioArea = pd.read_excel('ProblemaToy.xlsx')
+df_predioArea = pd.read_excel(file_name)
 # Criando um dicionário que associa cada área ao prédio correspondente
 ar = {}
 listaPredios = [*set(df_predioArea.loc[:,"Predio"].tolist())]
@@ -152,7 +172,7 @@ print()
 def predios_diferentes(p1, p2):
     return 1 if ar[p1] != ar[p2] else 0
 
-f_df = pd.read_excel('ProblemaToy.xlsx',sheet_name=0, usecols=[0,11])
+f_df = pd.read_excel(file_name,sheet_name=0, usecols=[0,11])
 #f_df_clean = f_df.dropna()
 print("======================================")
 print("| f_df                                  |")
@@ -169,53 +189,66 @@ num_predios = 3
 
 # CRIAR MODELO MIP
 model = Model()
+#model = Model(solver_name=CBC)
 
 # CRIAR VARIÁVEIS DE DECISÃO
 
-x = {(c, a, d, t): model.add_var(var_type=BINARY,name="x({},{},{},{})".format(c, a, d, t))  for a in A_df['Area'].values.tolist()  for d in D for t in T_df['Turno'].values.tolist() for c in C_dt_dict[(d,t)]}
+x = {(c, a, d, t): model.add_var(var_type=BINARY,name="x({},{},{},{})".format(c, a, d, t))  for a in A  for d in D for t in T_df['Turno'].values.tolist() for c in C_dt_dict[(d,t)]}
 
-# Criar variável U
-#u = {(c, p1, p2): model.add_var(var_type=BINARY, name="u({},{},{})".format(c, p1, p2)) for c in C_d_t_df[(d,t)] for p1 in listaPredios for p2 in listaPredios}
-
+y = {(c, a, a2, d, t): model.add_var(var_type=BINARY,name="y({},{},{},{},{})".format(c, a, a2, d, t))  for a in A for a2 in A0 for d in D for t in T_df['Turno'].values.tolist() for c in C_dt_dict[(d,t)]}
+#y = {(c, a, a2, d, t): model.add_var(var_type=BINARY,name="x({},{},{},{},{})".format(c, a, a2, d, t))  for a in A for a2 in A0 for d in D for t in T_df['Turno'].values.tolist() for c in C_dt_dict[(d,t)]}
 
 # DEFINIR A FUNÇÃO OBJETIVO
-#model.objective = xsum(u[c, p1, p2] * Distancia_d.loc[p1, p2] for c in C_d_t_df[(d,t)] for p1 in listaPredios for p2 in listaPredios)
-
+model.objective = xsum(y[(c,a,a2,d,t)] * Distancia_d[ar[a]][ar[a2]] for a in A for a2 in A for d in D for t in T_df['Turno'].values.tolist() for c in C_dt_dict[(d,t)])
 
 #Cada área deve ser alocada ao número requerido de colaboradores em cada turno e dia da semana
-for a in A_df['Area'].values.tolist():
+for a in A:
     for d in D:
         for t in T_df['Turno'].values.tolist():
             if (a, d, t) in nc:   
                 model  += xsum(x[(c,a,d,t)] for c in C_dt_dict[(d,t)]) == nc[(a,d,t)]
             else:
-                model += xsum(x[c,a,d,t] for c in C_dt_dict[(d,t)]) == 0
+                model += xsum(x[(c,a,d,t)] for c in C_dt_dict[(d,t)]) == 0
 
 
 #A soma dos tempos de limpeza e deslocamentos não pode exceder a carga horária diária por turno de cada colaborador
-# for d in D:
-#         for t in T_df['Turno'].values.tolist():
-#                 for c in C_dt_dict[(d,t)]:
-#                     if (c, d, t) in h:
-#                         model += xsum(x[(c,a,d,t)] * t_a[a] for a in t_a) <= h[(c, d, t)]
-                    
-
-
-
-                #Tem que considerar o parametro Distancia na soma?
+for d in D:
+  for t in T_df['Turno'].values.tolist():
+      for c in C_dt_dict[(d,t)]:
+          for a in A:
+              for a2 in A:
+                  if (c, d, t) in h:
+                      model += xsum((x[(c,a,d,t)] * t_a[a]) + y[(c,a,a2,d,t)] for a in t_a) <= h[(c, d, t)]
+        
                 
 
 #Respeitar as fixações de colaborador para área quando determinado
-# for index, row in f_df.iterrows():
-#      for d, dia_abreviado in dias_semana.items():
-#         for t in T_df['Turno'].values.tolist():
-#             c = row['ColaboradorFixo']
-#             a = row['Area']
-#             if str(c) != "nan":
-#                 if (a,d,t) in nc:
-#                     if nc[(a,d,t)] > 0:
-#                         for colaborador in c.split("+"):
-#                             model += x[(c,a,d,t)] >= 1 
+for index, row in f_df.iterrows():
+     for d in D:
+        for t in T_df['Turno'].values.tolist():
+            c = row['ColaboradorFixo']
+            a = row['Area']
+            if str(c) != "nan":
+                if (a,d,t) in nc:
+                    if nc[(a,d,t)] > 0:
+                        for colaborador in c.split("+"):
+                            model += (x[c,a,d,t]) >= 1
+
+
+# #Para cada colaborador, dia, turno e área uma área deve ser a próxima a ser limpa
+for a in A:
+    for d in D:
+        for t in T_df['Turno'].values.tolist():
+            for c in C_dt_dict[(d,t)]:
+                      model += xsum(y[(c,a,a2,d,t)] for a2 in A0 if a!=a2 ) == 1
+
+#Vincular as váriaveis X as váriaveis Y
+for a in A:
+    for d in D:
+        for t in T_df['Turno'].values.tolist():
+            for c in C_dt_dict[(d,t)]:
+                model += (x[c,a,d,t]) <= xsum(y[(c,a,a2,d,t)] for a2 in A0 if a!=a2 )
+
 
             # RESOLVER O MODELO
 model.optimize()
@@ -224,12 +257,13 @@ model.write('teste.lp')
 
 # IMPRIMIR RESULTADOS
 if model.status == OptimizationStatus.OPTIMAL:
-    for a in A_df['Area'].values.tolist():
+    for a in A:
         for d in D:
             for t in T_df['Turno'].values.tolist():
                 for c in C_dt_dict[(d,t)]:
-                    if x[(c, a,d,t)].x >= 0.99:
+                    if x[(c,a,d,t)].x >= 0.99:
                         print(f"x({c}, {a}, {d}, {t}) = 1")
+                        
 else:
     print("A solução ótima não foi encontrada.")
 
