@@ -266,6 +266,7 @@ if model.status == OptimizationStatus.OPTIMAL:
                         
 else:
     print("A solução ótima não foi encontrada.")
+    
 
 
 #Imprimir o resultado da minimização
