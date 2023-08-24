@@ -1,0 +1,9 @@
+\ Model _copy
+\ LP format - for model browsing. Use MPS format to capture full model detail.
+Minimize
+ 
+Subject To
+ 5(Seg,T15,Planta_Ouro_-_Copa_limpeza_2,Agua_e_Ar_-_Corredor_piso_superior,Dina):
+   = 1
+Bounds
+End
