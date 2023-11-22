@@ -47,14 +47,19 @@ for d in D:
         if (d,t) not in A_d_t:
             A_d_t[(d,t)] = []
 print(A_d_t)
-A_d_t_0 = {}
-A_d_t_1 = {}
+A_d_t_DUMMY_FIM = {}
+A_d_t_DUMMY_INICIO = {}
+A_d_t_DUMMY_INICIO_FIM = {}
 for (d, t) in A_d_t:
-    A_d_t_0[(d, t)] = [a for a in A_d_t[(d, t)]]
-    A_d_t_1[(d, t)] = [a for a in A_d_t[(d, t)]]
+    A_d_t_DUMMY_FIM[(d, t)] = [a for a in A_d_t[(d, t)]]
+    A_d_t_DUMMY_INICIO[(d, t)] = [a for a in A_d_t[(d, t)]]
+    A_d_t_DUMMY_INICIO_FIM[(d, t)] = [a for a in A_d_t[(d, t)]]
     if  len(A_d_t[(d, t)]) > 0:
-        A_d_t_0[(d, t)].append("DUMMY_FIM")
-        A_d_t_1[(d, t)].append("DUMMY_INICIO")
+        A_d_t_DUMMY_FIM[(d, t)].append("DUMMY_FIM")
+        A_d_t_DUMMY_INICIO[(d, t)].append("DUMMY_INICIO")
+
+        A_d_t_DUMMY_INICIO_FIM[(d, t)].append("DUMMY_FIM")
+        A_d_t_DUMMY_INICIO_FIM[(d, t)].append("DUMMY_INICIO")
 
 C_d_t_df = pd.read_excel(file_name,sheet_name=3, header=[0])
 C_dt_dict = {}
@@ -173,8 +178,15 @@ model = Model()
 
 # CRIAR VARIÁVEIS DE DECISÃO
 
-x = {(c, a, d, t): model.add_var(var_type=BINARY,name="x({},{},{},{})".format(c, a, d, t)) for d in D for t in Turnos for a in A_d_t_1[(d, t)] for c in C_dt_dict[(d,t)]}
-y = {(c, a, a2, d, t): model.add_var(var_type=BINARY,name="y({},{},{},{},{})".format(c, a, a2, d, t)) for d in D for t in Turnos for a2 in A_d_t_0[(d, t)] for a in A_d_t_1[(d, t)] for c in C_dt_dict[(d,t)]}
+x = {(c, a, d, t): model.add_var(var_type=BINARY,name="x({},{},{},{})".format(c, a, d, t)) for d in D for t in Turnos for a in A_d_t[(d, t)] for c in C_dt_dict[(d,t)]}
+
+for d in D:
+    for t in Turnos:
+        for c in C_dt_dict[(d,t)]:
+            x[(c,"DUMMY_INICIO",d,t)] =  model.add_var(var_type=BINARY,lb=1.0, ub=1.0, name="x({},{},{},{})".format(c, "DUMMY_INICIO", d, t)) 
+            x[(c,"DUMMY_FIM",d,t)] =  model.add_var(var_type=BINARY,lb=1.0, ub=1.0, name="x({},{},{},{})".format(c, "DUMMY_FIM", d, t))
+            
+y = {(c, a, a2, d, t): model.add_var(var_type=BINARY,name="y({},{},{},{},{})".format(c, a, a2, d, t)) for d in D for t in Turnos for a2 in A_d_t_DUMMY_FIM[(d, t)] for a in A_d_t_DUMMY_INICIO[(d, t)] for c in C_dt_dict[(d,t)]}
 
 # DEFINIR A FUNÇÃO OBJETIVO
 model.objective = xsum(y[(c,a,a2,d,t)] * Distancia_d[ar[a]][ar[a2]] for d in D for t in Turnos for a in A_d_t[(d,t)] for a2 in A_d_t[(d,t)] for c in C_dt_dict[(d,t)])
@@ -213,24 +225,33 @@ for index, row in f_df.iterrows():
 #sucessor:
 for d in D:
     for t in Turnos:
-       for a in A_d_t_1[(d, t)]:
+       for a in A_d_t_DUMMY_INICIO[(d, t)]:
             for c in C_dt_dict[(d,t)]:
-                model.add_constr(xsum(y[(c,a,a2,d,t)] for a2 in A_d_t_0[(d, t)] if a!=a2 ) == 1,name = f"constr5({c},{a},{d},{t})")
+                model.add_constr(xsum(y[(c,a,a2,d,t)] for a2 in A_d_t_DUMMY_FIM[(d, t)] if a!=a2 ) == x[(c,a,d,t)],name = f"constr5({c},{a},{d},{t})")
 
 #antecessor:
 for d in D:
     for t in Turnos:
-       for a2 in A_d_t_0[(d, t)]:
+       for a2 in A_d_t_DUMMY_FIM[(d, t)]:
             for c in C_dt_dict[(d,t)]:
-                model.add_constr(xsum(y[(c,a,a2,d,t)] for a in A_d_t_1[(d, t)] if a!=a2 ) == 1,name = f"constr6({c},{a},{d},{t})")
+                model.add_constr(xsum(y[(c,a,a2,d,t)] for a in A_d_t_DUMMY_INICIO[(d, t)] if a!=a2 ) == x[(c,a2,d,t)],name = f"constr6({c},{a2},{d},{t})")
 
 
-#Vincular as váriaveis X as váriaveis Y
-for d in D:
-    for t in Turnos:
-        for a in A_d_t_1[(d, t)]:
-            for c in C_dt_dict[(d,t)]:
-                model.add_constr(x[c,a,d,t] <= xsum(y[(c,a,a2,d,t)] for a2 in A_d_t_0[(d, t)] if a!=a2 ), name = f"constr7({c},{a},{d},{t})")
+# #Vincular as váriaveis X as váriaveis Y
+# for d in D:
+#     for t in Turnos:
+#         for a in A_d_t_1[(d, t)]:
+#             for c in C_dt_dict[(d,t)]:
+#                 model.add_constr(x[c,a,d,t] <= xsum(y[(c,a,a2,d,t)] for a2 in A_d_t_0[(d, t)] if a!=a2 ), name = f"constr7({c},{a},{d},{t})")
+                
+
+# # #Eliminando sub-rotas
+# for i in range(1, n):
+#              for j in range(1, n):
+#                  if i != j:
+#                      model.add_constr(u[i] - u[j] + ((n - 1) * x[i, j]) + ((n - 3) * x[j, i]) <= n - 2, name=f"cons9_{i}_{j}")
+
+
 
 model.write('teste.lp')
 
@@ -250,12 +271,12 @@ if model.status == OptimizationStatus.OPTIMAL:
     
     #testando solucao:
     print("\n\n--------------------------\n\n")
-    for a in A_d_t_1[("Seg", "M6")]:
+    for a in A_d_t_DUMMY_INICIO[("Seg", "M6")]:
         if ("Maria",a,"Seg", "M6") in x and x[("Maria",a,"Seg", "M6")].x >= 0.99:
             print(f"x[(Maria,{a},Seg,M6)] = 1")
     print()
-    for a in A_d_t_1[("Seg", "M6")]:
-        for a2 in A_d_t_0[("Seg", "M6")]:
+    for a in A_d_t_DUMMY_INICIO[("Seg", "M6")]:
+        for a2 in A_d_t_DUMMY_FIM[("Seg", "M6")]:
             if ("Maria",a,a2,"Seg", "M6") in y and y[("Maria",a,a2,"Seg", "M6")].x >= 0.99:
                 print(f"y[(Maria,{a},{a2}Seg,M6)] = 1")
 else:
