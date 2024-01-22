@@ -188,6 +188,10 @@ for d in D:
             
 y = {(c, a, a2, d, t): model.add_var(var_type=BINARY,name="y({},{},{},{},{})".format(c, a, a2, d, t)) for d in D for t in Turnos for a2 in A_d_t_DUMMY_FIM[(d, t)] for a in A_d_t_DUMMY_INICIO[(d, t)] for c in C_dt_dict[(d,t)]}
 
+
+u = {(c, a, a2, d, t): model.add_var(var_type=INTEGER,name="u({},{},{},{},{})".format(c, a, a2, d, t)) for d in D for t in Turnos  for c in C_dt_dict[(d,t)] for a2 in A_d_t_DUMMY_FIM[(d, t)] for a in A_d_t_DUMMY_INICIO[(d, t)]}
+
+
 # DEFINIR A FUNÇÃO OBJETIVO
 model.objective = xsum(y[(c,a,a2,d,t)] * Distancia_d[ar[a]][ar[a2]] for d in D for t in Turnos for a in A_d_t[(d,t)] for a2 in A_d_t[(d,t)] for c in C_dt_dict[(d,t)])
 
@@ -246,10 +250,21 @@ for d in D:
                 
 
 # # #Eliminando sub-rotas
+for d in D:
+    for t in Turnos:
+        for a in A_d_t[(d,t)]:
+            for a2 in A_d_t[(d,t)]:
+                if a!=a2:
+                    for c in C_dt_dict[(d,t)]:
+                        model.add_constr(u[(c,a,d,t)] - u[(c,a2,d,t)] + (A_d_t[(d,t)] - 1) * y[(c,a,a2,d,t)] + (A_d_t[(d,t)] - 3) * y[(c,a,a2,d,t)] <= (A_d_t[(d,t)] - 2), name=f"constr7({c},{a},{a2},{d},{t})")
+
+
 # for i in range(1, n):
 #              for j in range(1, n):
 #                  if i != j:
 #                      model.add_constr(u[i] - u[j] + ((n - 1) * x[i, j]) + ((n - 3) * x[j, i]) <= n - 2, name=f"cons9_{i}_{j}")
+
+
 
 
 
