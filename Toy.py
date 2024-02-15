@@ -11,23 +11,23 @@ D = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]
 # Ler os turnos da planilha Excel.
 T_df = pd.read_excel(file_name,sheet_name=2, names=['Turno'])
 Turnos = T_df['Turno'].values.tolist()
-print("======================================")
-print("| T_df                                  |")
-print("======================================")
-print(T_df)
-print()
+# print("======================================")
+# print("| T_df                                  |")
+# print("======================================")
+# print(T_df)
+# print()
 
 #Ler o total de colaboradores da Planilha Excel
 C_d_t_df = pd.read_excel(file_name,sheet_name=1, names=['Colaborador'])
-print("======================================")
-print("| C_df                                |")
-print("======================================")
-print(C_d_t_df)
-print()
+# print("======================================")
+# print("| C_df                                |")
+# print("======================================")
+# print(C_d_t_df)
+# print()
 
 # Ler as áreas da planilha Excel.
 A_df = pd.read_excel(file_name,sheet_name=0)
-print(A_df)
+# print(A_df)
 
 A_d_t = {}
 for index, row in A_df.iterrows():
@@ -46,7 +46,7 @@ for d in D:
     for t in Turnos:
         if (d,t) not in A_d_t:
             A_d_t[(d,t)] = []
-print(A_d_t)
+# print(A_d_t)
 A_d_t_DUMMY_FIM = {}
 A_d_t_DUMMY_INICIO = {}
 A_d_t_DUMMY_INICIO_FIM = {}
@@ -71,19 +71,19 @@ for index, row in C_d_t_df.iterrows():
         colaboradores = row["Colaboradores Disponiveis"].split("+")
     C_dt_dict[(dia, turno)] = colaboradores
 
-print(C_dt_dict)
-print("======================================")
-print("|C_d_t_df                                   |")
-print("======================================")
-print(C_d_t_df)
-print()
+# print(C_dt_dict)
+# print("======================================")
+# print("|C_d_t_df                                   |")
+# print("======================================")
+# print(C_d_t_df)
+# print()
 
 Distancia_d = pd.read_excel(file_name,sheet_name=5, index_col=0)
-print("======================================")
-print("Distancia_d                          |")
-print("======================================")
-print(Distancia_d)
-print()
+# print("======================================")
+# print("Distancia_d                          |")
+# print("======================================")
+# print(Distancia_d)
+# print()
 
 #PARÂMETROS
 
@@ -106,22 +106,22 @@ for index, row in dadosminutos.iterrows():
     h[(colaborador, d, turno)] = carga_horaria
 
 # Exibe o dicionário
-print("======================================")
-print("| h                                  |")
-print("======================================")
-print(h)
-print()
+# print("======================================")
+# print("| h                                  |")
+# print("======================================")
+# print(h)
+# print()
 
 # t[a] = tempo (em minutos) que a área a leva para ser limpada
 df_tempoLimpeza = pd.read_excel(file_name)
 
 # Cria um dicionário com o tempo que cada área leva para ser limpa
 t_a = dict(zip(df_tempoLimpeza["Area"], df_tempoLimpeza["Tempo_limpeza_em_minutos"]))
-print("======================================")
-print("| t_a                                  |")
-print("======================================")
-print(t_a)
-print()
+# print("======================================")
+# print("| t_a                                  |")
+# print("======================================")
+# print(t_a)
+# print()
 
 limpeza_df = pd.read_excel(file_name, sheet_name=0, usecols=[0, 3, 4, 5, 6, 7, 8, 9,10])
 D = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]
@@ -135,23 +135,23 @@ for index, row in limpeza_df.iterrows():
         nc[a, d, turno] = row[d]
 
 # Exibir o parâmetro nc
-print("======================================")
-print("| Parâmetro nc                       |")
-print("======================================")
-for key, value in nc.items():
-    print(f"{key}: {value}")
-print()
+# # print("======================================")
+# # print("| Parâmetro nc                       |")
+# # print("======================================")
+# for key, value in nc.items():
+#     print(f"{key}: {value}")
+# print()
 
 
 df_predioArea = pd.read_excel(file_name)
 # Criando um dicionário que associa cada área ao prédio correspondente
 ar = {}
 listaPredios = [*set(df_predioArea.loc[:,"Predio"].tolist())]
-print("======================================")
-print("| lista Predio                        |")
-print("======================================")
-print(listaPredios)
-print()
+# print("======================================")
+# print("| lista Predio                        |")
+# print("======================================")
+# print(listaPredios)
+# print()
 
 for index, row in df_predioArea.iterrows():
     a = row['Area']
@@ -159,18 +159,18 @@ for index, row in df_predioArea.iterrows():
     ar[a] = predio
 ar["DUMMY_FIM"] = "DUMMY_FIM"
 ar["DUMMY_INICIO"] = "DUMMY_INICIO"
-print("======================================")
-print("| ar                                  |")
-print("======================================")
-print(ar)
-print()
+# print("======================================")
+# print("| ar                                  |")
+# print("======================================")
+# print(ar)
+# print()
 
 f_df = pd.read_excel(file_name,sheet_name=0, usecols=[0,11])
-print("======================================")
-print("| f_df                                  |")
-print("======================================")
-print(f_df)
-print()
+# print("======================================")
+# print("| f_df                                  |")
+# print("======================================")
+# print(f_df)
+# print()
 
 # CRIAR MODELO MIP
 model = Model()
@@ -264,7 +264,8 @@ for d in D:
 for d in D:
     for t in Turnos:
         for c in C_dt_dict[(d,t)]:
-            model.add_constr(u[(c,"DUMMY_INICIO",d,t)] == 1, name=f"constr7a({c},{d},{t})")
+            if (c,"DUMMY_INICIO",d,t) in u:
+                 model.add_constr(u[(c,"DUMMY_INICIO",d,t)] == 1, name=f"constr7a({c},{d},{t})")
 
 for d in D:
     for t in Turnos:
